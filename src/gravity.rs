@@ -4,6 +4,7 @@ use bevy::prelude::*;
 use crate::physics::RigidBody;
 
 const G: f32 = 66.743;
+pub const DT: f32 = 5.0;
 
 pub(crate) fn tick_gravity(mut bodies: Query<(&Transform, &mut RigidBody)>) {
     let mut iterator = bodies.iter_combinations_mut();
@@ -20,9 +21,7 @@ pub(crate) fn tick_gravity(mut bodies: Query<(&Transform, &mut RigidBody)>) {
 
         let force = G * body_1.mass * body_2.mass / distance_squared;
 
-        info!("Force {:?}", force);
-
-        body_1.apply_force(force * direction_vector_1);
-        body_2.apply_force(force * direction_vector_2);
+        body_1.apply_force(force * direction_vector_1 * DT);
+        body_2.apply_force(force * direction_vector_2 * DT);
     }
 }

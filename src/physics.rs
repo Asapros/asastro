@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::gravity::tick_gravity;
+use crate::gravity::{tick_gravity, DT};
 
 #[derive(Component)]
 pub struct RigidBody {
@@ -21,7 +21,7 @@ impl RigidBody {
 
 fn tick_velocity(mut bodies: Query<(&mut Transform, &RigidBody)>) {
     for (mut transform, body) in &mut bodies {
-        transform.translation += body.velocity;
+        transform.translation += body.velocity * DT;
     }
 }
 
