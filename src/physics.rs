@@ -14,14 +14,15 @@ impl Default for RigidBody {
 }
 
 impl RigidBody {
-    pub fn apply_force(&mut self, force: Vec3) {
-        self.velocity += force / self.mass;
+    pub fn apply_force(&mut self, force: Vec3, period: f32) {
+        self.velocity += force / self.mass * period;
     }
 }
 
 fn tick_velocity(mut bodies: Query<(&mut Transform, &RigidBody)>) {
     for (mut transform, body) in &mut bodies {
         transform.translation += body.velocity * DT;
+        info!("vel: {:?}", body.velocity.length());
     }
 }
 
