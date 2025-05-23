@@ -22,7 +22,7 @@ impl RigidBody {
 fn tick_velocity(mut bodies: Query<(&mut Transform, &RigidBody)>) {
     for (mut transform, body) in &mut bodies {
         transform.translation += body.velocity * DT;
-        info!("vel: {:?}", body.velocity.length());
+        // info!("vel: {:?}", body.velocity.length());
     }
 }
 

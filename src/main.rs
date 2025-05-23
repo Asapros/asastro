@@ -1,10 +1,11 @@
 mod physics;
 mod gravity;
+mod ui;
 
 use bevy::color::palettes::basic::{GRAY, RED, YELLOW};
 use bevy::prelude::*;
 use crate::physics::{PhysicsPlugin, RigidBody};
-
+use crate::ui::UiPlugin;
 // Using units:
 // distance: AU
 // time:     year
@@ -48,6 +49,7 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugins(PhysicsPlugin)
+        .add_plugins(UiPlugin)
         .add_systems(Startup, setup_camera)
         .add_systems(Startup, test_spawn_shapes)
         .run();
