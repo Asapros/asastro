@@ -1,6 +1,7 @@
 use bevy::prelude::*;
-use crate::gravity::{tick_gravity, DT};
+use crate::gravity::{tick_gravity};
 
+pub const DT: f32 = 0.00004 * 213.7;
 #[derive(Component)]
 pub struct RigidBody {
     pub mass: f32,

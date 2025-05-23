@@ -2,10 +2,9 @@ use std::f32::consts::PI;
 use bevy::log::{debug, info};
 use bevy::math::{FloatPow, NormedVectorSpace};
 use bevy::prelude::*;
-use crate::physics::RigidBody;
+use crate::physics::{RigidBody, DT};
 
 const G: f32 = 4.0 * PI * PI;
-pub const DT: f32 = 0.00004;
 
 pub(crate) fn tick_gravity(mut bodies: Query<(&Transform, &mut RigidBody)>) {
     let mut iterator = bodies.iter_combinations_mut();
