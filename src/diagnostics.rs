@@ -28,25 +28,25 @@ fn setup_text(mut commands: Commands, asset_server: Res<AssetServer>) {
 
 }
 
-const SOLAR_YEAR_DAYS: f32 = 365.2422;
+pub const SOLAR_YEAR_DAYS: f32 = 365.2422;
 
 fn time_to_string(years: f32) -> String {
-    if years > 1.0 {
+    if years.abs() > 1.0 {
         return format!("{:.1} years", years);
     }
     let days = years * SOLAR_YEAR_DAYS;
 
-    if days > SOLAR_YEAR_DAYS / 12.0 {
+    if days.abs() > SOLAR_YEAR_DAYS / 12.0 {
         return format!("{:.1} months", days / SOLAR_YEAR_DAYS * 12.0)
     }
-    if days > 1.0 {
+    if days.abs() > 1.0 {
         return format!("{:.1} days", days)
     }
     let minutes = days * 24.0 * 60.0;
-    if minutes > 60.0 {
+    if minutes.abs() > 60.0 {
         return format!("{:.1} hours", minutes / 60.0);
     }
-    if minutes > 1.0 {
+    if minutes.abs() > 1.0 {
         return format!("{:.1} minutes", minutes);
     }
     return format!("{:.1} seconds", minutes * 60.0);
