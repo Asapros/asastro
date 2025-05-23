@@ -5,3 +5,5 @@
 
 2. bardzo duży model, poruszanie się
    https://joshworth.com/dev/pixelspace/pixelspace_solarsystem.html
+
+3. matematyka zooma
