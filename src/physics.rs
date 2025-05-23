@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use crate::gravity::{tick_gravity};
+use crate::settings::SimulationSettings;
 
-pub const DT: f32 = 0.00004 * 213.7;
 #[derive(Component)]
 pub struct RigidBody {
     pub mass: f32,
@@ -20,10 +20,11 @@ impl RigidBody {
     }
 }
 
-fn tick_velocity(mut bodies: Query<(&mut Transform, &RigidBody)>) {
+fn tick_velocity(mut bodies: Query<(&mut Transform, &RigidBody)>, settings: Res<SimulationSettings>) {
+    if settings.pause { return }
+    
     for (mut transform, body) in &mut bodies {
-        transform.translation += body.velocity * DT;
-        // info!("vel: {:?}", body.velocity.length());
+        transform.translation += body.velocity * settings.dt;
     }
 }
 
@@ -33,7 +34,6 @@ pub struct PhysicsPlugin;
 
 impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, tick_velocity);
-        app.add_systems(Update, tick_gravity);
+        app.add_systems(Update, (tick_gravity, tick_velocity).chain());
     }
 }
