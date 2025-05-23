@@ -1,3 +1,5 @@
+use bevy::input::mouse::MouseWheel;
+use bevy::math::ops::powf;
 use bevy::prelude::*;
 use crate::gravity::tick_gravity;
 
@@ -12,7 +14,7 @@ const DRAG_BUTTON: MouseButton = MouseButton::Left;
 
 fn drag_camera(mut camera: Query<(&Camera, &GlobalTransform, &mut Transform), With<Camera2d>>, buttons: Res<ButtonInput<MouseButton>>, mut drag: ResMut<DragInfo>, windows: Query<&Window>) {
     let window = windows.single().expect("Window not found");
-    let (camera, global_transform, mut camera_transform) = camera.single_mut().expect("failed to get camera");
+    let (camera, global_transform, mut camera_transform) = camera.single_mut().expect("Camera not found");
     let camera_position = global_transform.translation().truncate();
     let Some(cursor_position) = window.cursor_position().and_then(|cursor| camera.viewport_to_world_2d(global_transform, cursor).ok()) else {
         return;
@@ -36,11 +38,25 @@ fn drag_camera(mut camera: Query<(&Camera, &GlobalTransform, &mut Transform), Wi
     camera_transform.translation.y = new_camera_position.y;
 }
 
+fn scale_camera(mut camera: Query<&mut Projection, With<Camera2d>>, mut scroll_events: EventReader<MouseWheel>,) {
+    let steps: f32 = scroll_events.read().map(|event| event.y).sum();
+
+    let mut projection = camera.single_mut().expect("Camera not found").into_inner();
+    
+    let Projection::Orthographic(projection) = projection else {
+        panic!("Camera is dyslexic (non-orthographic projection set)");
+    };
+    projection.scale *= powf(1.2, -steps);
+    
+    info!("{:?}", projection.scale);
+}
+
 pub struct UiPlugin;
 
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Update, drag_camera);
+        app.add_systems(Update, scale_camera);
         app.insert_resource(DragInfo { cursor_start: None, camera_start: None });
     }
 }
