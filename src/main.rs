@@ -3,9 +3,12 @@ mod gravity;
 mod ui;
 mod template;
 mod settings;
+mod diagnostics;
 
 use bevy::color::palettes::basic::{GRAY, RED, YELLOW};
+use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::prelude::*;
+use crate::diagnostics::DiagnosticsPlugin;
 use crate::physics::{PhysicsPlugin, RigidBody};
 use crate::settings::SettingsPlugin;
 use crate::template::SOLAR_SYSTEM_TEMPLATE;
@@ -36,6 +39,8 @@ fn main() {
         .add_plugins(PhysicsPlugin)
         .add_plugins(UiPlugin)
         .add_plugins(SettingsPlugin)
+        .add_plugins(FrameTimeDiagnosticsPlugin::default())
+        .add_plugins(DiagnosticsPlugin)
         .add_systems(Startup, setup_camera)
         .add_systems(Startup, test_spawn_shapes)
         .run();
