@@ -1,12 +1,12 @@
 mod physics;
 mod gravity;
 
-use bevy::image::TextureError::TranscodeError;
 use bevy::prelude::*;
 use crate::physics::{PhysicsPlugin, RigidBody};
 
 fn setup_camera(mut commands: Commands) {
-    commands.spawn(Camera2d);
+    commands.spawn((Camera2d, Projection::Orthographic(OrthographicProjection { scale: 2.0, ..OrthographicProjection::default_2d() })));
+    
 }
 
 fn test_spawn_shapes(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<ColorMaterial>>) {
