@@ -1,7 +1,7 @@
 use bevy::input::mouse::MouseWheel;
 use bevy::math::ops::powf;
 use bevy::prelude::*;
-use crate::physics::rigid_body::RigidBody;
+use crate::physics::rigid_body::{tick_velocity, RigidBody};
 
 #[derive(Resource)]
 struct DragInfo {
@@ -82,7 +82,7 @@ impl Plugin for CameraPlugin {
         app.add_systems(Startup, setup_camera);
         app.add_systems(Update, drag_camera);
         app.add_systems(Update, zoom_camera);
-        app.add_systems(Update, test_follow_earth.after(drag_camera).after(zoom_camera));
+        app.add_systems(Update, test_follow_earth.after(drag_camera).after(zoom_camera).after(tick_velocity));
         app.insert_resource(DragInfo { cursor_start: None, camera_start: None });
     }
 }

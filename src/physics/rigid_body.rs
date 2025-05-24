@@ -19,7 +19,7 @@ impl RigidBody {
     }
 }
 
-pub(super) fn tick_velocity(mut bodies: Query<(&mut Transform, &RigidBody)>, settings: Res<SimulationSettings>) {
+pub(crate) fn tick_velocity(mut bodies: Query<(&mut Transform, &RigidBody)>, settings: Res<SimulationSettings>) {
     if settings.pause { return }
     
     for (mut transform, body) in &mut bodies {
