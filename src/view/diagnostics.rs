@@ -1,8 +1,6 @@
 use bevy::diagnostic::{Diagnostics, DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::*;
-use crate::settings::SimulationSettings;
-
-pub struct DiagnosticsPlugin;
+use crate::control::settings::SimulationSettings;
 
 #[derive(Component)]
 struct DiagnosticsText;
@@ -28,7 +26,7 @@ fn setup_text(mut commands: Commands, asset_server: Res<AssetServer>) {
 
 }
 
-pub const SOLAR_YEAR_DAYS: f32 = 365.2422;
+const SOLAR_YEAR_DAYS: f32 = 365.2422;
 
 fn time_to_string(years: f32) -> String {
     if years.abs() > 1.0 {
@@ -69,6 +67,8 @@ fn update_text(mut text: Query<&mut Text, With<DiagnosticsText>>, diagnostics: R
 
     text.0 = [sps_text].join("\n");
 }
+
+pub(super) struct DiagnosticsPlugin;
 impl Plugin for DiagnosticsPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, setup_text);

@@ -1,13 +1,11 @@
 use std::f32::consts::PI;
-use bevy::log::{debug, info};
-use bevy::math::{FloatPow, NormedVectorSpace};
 use bevy::prelude::*;
-use crate::physics::{RigidBody};
-use crate::settings::SimulationSettings;
+use crate::control::settings::SimulationSettings;
+use crate::physics::rigid_body::RigidBody;
 
 const G: f32 = 4.0 * PI * PI;
 
-pub(crate) fn tick_gravity(mut bodies: Query<(&Transform, &mut RigidBody)>, settings: Res<SimulationSettings>) {
+pub(super) fn tick_gravity(mut bodies: Query<(&Transform, &mut RigidBody)>, settings: Res<SimulationSettings>) {
     if settings.pause { return }
     let mut iterator = bodies.iter_combinations_mut();
     while let Some([(transform_1, mut body_1), (transform_2, mut body_2)]) = iterator.fetch_next() {

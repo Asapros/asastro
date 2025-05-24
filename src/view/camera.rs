@@ -1,8 +1,7 @@
-use std::ops::Mul;
 use bevy::input::mouse::MouseWheel;
 use bevy::math::ops::powf;
 use bevy::prelude::*;
-use crate::gravity::tick_gravity;
+use crate::physics::rigid_body::RigidBody;
 
 #[derive(Resource)]
 struct DragInfo {
@@ -12,6 +11,10 @@ struct DragInfo {
 
 const DRAG_BUTTON: MouseButton = MouseButton::Left;
 const ZOOM_FACTOR: f32 = 1.2;
+
+fn setup_camera(mut commands: Commands) {
+    commands.spawn((Camera2d, Projection::Orthographic(OrthographicProjection { scale: 0.001, ..OrthographicProjection::default_2d() })));
+}
 
 fn drag_camera(mut camera: Query<(&Camera, &GlobalTransform, &mut Transform), With<Camera2d>>, buttons: Res<ButtonInput<MouseButton>>, mut drag: ResMut<DragInfo>, windows: Query<&Window>) {
     let window = windows.single().expect("Window not found");
@@ -63,12 +66,23 @@ fn zoom_camera(mut camera: Query<(&Camera, &mut Projection, &GlobalTransform, &m
     
 }
 
-pub struct UiPlugin;
+fn test_follow_earth(mut camera: Query<&mut Transform, With<Camera2d>>, planets: Query<(&RigidBody, &Transform), Without<Camera2d>>) {
+    let mut camera_transform = camera.single_mut().expect("Camera not found");
+    for (body, transform) in planets {
+        if body.mass == 0.00000300 {
+            camera_transform.translation = transform.translation;
+            return;
+        }
+    }
+}
+pub(super) struct CameraPlugin;
 
-impl Plugin for UiPlugin {
+impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
+        app.add_systems(Startup, setup_camera);
         app.add_systems(Update, drag_camera);
         app.add_systems(Update, zoom_camera);
+        app.add_systems(Update, test_follow_earth.after(drag_camera).after(zoom_camera));
         app.insert_resource(DragInfo { cursor_start: None, camera_start: None });
     }
 }

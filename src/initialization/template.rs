@@ -6,7 +6,7 @@ use bevy::prelude::Color;
 // mass:     MO (solar mass)
 // This system normalizes gravitational constant G = 4π²
 
-pub struct TemplateBody {
+pub(super) struct TemplateBody {
     pub name: &'static str,
     pub mass: f32,          // [MO]
     pub radius: f32,        // [AU]
@@ -15,7 +15,7 @@ pub struct TemplateBody {
     pub color: Color
 }
 
-pub const SOLAR_SYSTEM_TEMPLATE: [TemplateBody; 10] = [
+pub(super) const SOLAR_SYSTEM_TEMPLATE: [TemplateBody; 10] = [
     TemplateBody { name: "Sun",     mass: 1.0,         radius: 0.00465047,aphelion_dist: 0.0,   aphelion_speed: 0.0,  color: Color::srgb_u8(255, 223, 0) },
     TemplateBody { name: "Mercury", mass: 0.000000166, radius: 0.0000163, aphelion_dist: 0.468, aphelion_speed: 8.17, color: Color::srgb_u8(169, 169, 169) },
     TemplateBody { name: "Venus",   mass: 0.00000245,  radius: 0.0000405, aphelion_dist: 0.728, aphelion_speed: 7.38, color: Color::srgb_u8(218, 165, 32) },
