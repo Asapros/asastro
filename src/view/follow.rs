@@ -54,6 +54,9 @@ fn select_followable(followables: Query<(Entity, &Transform, &Followable)>, mut 
         follow_info.name = Some(followable.name.clone());
         return;
     }
+    follow_info.entity = None;
+    follow_info.previous_position = None;
+    follow_info.name = None;
 }
 pub(super) struct CameraFollowPlugin;
 impl Plugin for CameraFollowPlugin {
