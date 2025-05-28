@@ -28,7 +28,7 @@ fn follow_entity(mut camera: Query<&mut Transform, With<Camera2d>>, planets: Que
         return;
     };
     let previous_position = follow_info.previous_position.unwrap();
-    
+
     let mut camera_transform = camera.single_mut().expect("Camera not found");
     for (entity, transform) in planets {
         if entity != followed { continue };
@@ -38,7 +38,7 @@ fn follow_entity(mut camera: Query<&mut Transform, With<Camera2d>>, planets: Que
     }
 }
 
-fn test_click_followable(followables: Query<(Entity, &Transform, &Followable)>, mut camera: Query<(&Camera, &GlobalTransform), With<Camera2d>>, windows: Query<&Window>, button: Res<ButtonInput<MouseButton>>, mut follow_info: ResMut<FollowInfo>) {
+fn select_followable(followables: Query<(Entity, &Transform, &Followable)>, mut camera: Query<(&Camera, &GlobalTransform), With<Camera2d>>, windows: Query<&Window>, button: Res<ButtonInput<MouseButton>>, mut follow_info: ResMut<FollowInfo>) {
     if !button.just_pressed(SELECT_BUTTON) {
         return;
     }
@@ -46,7 +46,7 @@ fn test_click_followable(followables: Query<(Entity, &Transform, &Followable)>, 
     let window = windows.single().expect("Window not found");
     let Some(cursor_screen) = window.cursor_position() else { return; };
     let Some(cursor_world) = camera.viewport_to_world_2d(camera_transform, cursor_screen).ok() else { return; };
-    
+
     for (entity, transform, followable) in followables {
         if transform.translation.truncate().distance(cursor_world) > followable.radius { continue }
         follow_info.entity = Some(entity);
@@ -60,6 +60,6 @@ impl Plugin for CameraFollowPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(FollowInfo::default());
         app.add_systems(Update, follow_entity.after(tick_velocity));
-        app.add_systems(Update, test_click_followable);
+        app.add_systems(Update, select_followable);
     }
 }
