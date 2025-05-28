@@ -1,6 +1,7 @@
 use bevy::diagnostic::{Diagnostics, DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::*;
 use crate::control::settings::SimulationSettings;
+use crate::view::follow::FollowInfo;
 
 #[derive(Component)]
 struct DiagnosticsText;
@@ -50,7 +51,7 @@ fn time_to_string(years: f32) -> String {
     return format!("{:.1} seconds", minutes * 60.0);
 }
 
-fn update_text(mut text: Query<&mut Text, With<DiagnosticsText>>, diagnostics: Res<DiagnosticsStore>, settings: Res<SimulationSettings>) {
+fn update_text(mut text: Query<&mut Text, With<DiagnosticsText>>, diagnostics: Res<DiagnosticsStore>, settings: Res<SimulationSettings>, follow_info: Res<FollowInfo>) {
     let mut text = text.single_mut().expect("Diagnostic text not found");
     let fps = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS).and_then(|d| d.average());
     let fps_text = match fps {
@@ -64,8 +65,16 @@ fn update_text(mut text: Query<&mut Text, With<DiagnosticsText>>, diagnostics: R
         None => "SPS: -".to_string(),
         Some(fps) => format!("SPS: {}", time_to_string(fps as f32 * spf))
     };
+    // let sps_text_with_pause = match settings.pause {
+    //     
+    // }
+    
+    let following_text = match &follow_info.name {
+        None => "Following: -".to_string(),
+        Some(name) => format!("Following: {}", name)
+    };
 
-    text.0 = [sps_text].join("\n");
+    text.0 = [sps_text, following_text].join("\n");
 }
 
 pub(super) struct DiagnosticsPlugin;

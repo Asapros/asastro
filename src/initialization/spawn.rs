@@ -4,9 +4,9 @@ use bevy::math::Vec3;
 use bevy::prelude::{Circle, ColorMaterial, Commands, Mesh, Mesh2d, MeshMaterial2d, ResMut, Transform};
 use crate::initialization::template::SOLAR_SYSTEM_TEMPLATE;
 use crate::physics::rigid_body::RigidBody;
-use crate::view::camera::{FollowInfo, ViewInfo};
+use crate::view::follow::{FollowInfo, Followable};
 
-pub(super) fn spawn_solar_system(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<ColorMaterial>>, mut view_info: ResMut<ViewInfo>) {
+pub(super) fn spawn_solar_system(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<ColorMaterial>>) {
     for body in SOLAR_SYSTEM_TEMPLATE {
         // let mesh = Mesh2d(meshes.add(Circle::new(body.radius)));
         let mesh = Mesh2d(meshes.add(Circle::new(0.05)));
@@ -14,11 +14,9 @@ pub(super) fn spawn_solar_system(mut commands: Commands, mut meshes: ResMut<Asse
         let transform = Transform::from_xyz(body.aphelion_dist, 0.0, 0.0);
         let entity = commands.spawn((
             mesh, material, transform,
-            RigidBody { velocity: Vec3::new(0.0, body.aphelion_speed, 0.0), mass: body.mass }
+            RigidBody { velocity: Vec3::new(0.0, body.aphelion_speed, 0.0), mass: body.mass },
+            Followable { radius: 0.05, name: body.name.to_string() }
         ));
-        if body.name == "Mercury" {
-            view_info.follow = Some(FollowInfo {followed: entity.id(), previous_position: transform.translation });
-        }
     }
     // Spawn moon
     let mesh = Mesh2d(meshes.add(Circle::new(0.0000115)));

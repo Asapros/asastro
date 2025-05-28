@@ -1,18 +1,17 @@
 use bevy::input::mouse::MouseWheel;
 use bevy::math::ops::powf;
 use bevy::prelude::*;
-use crate::physics::rigid_body::{tick_velocity, RigidBody};
 
-#[derive(Copy, Clone)]
-pub(crate) struct FollowInfo {
-    pub(crate) followed: Entity,
-    pub(crate) previous_position: Vec3
-}
 
 #[derive(Resource)]
-pub(crate) struct ViewInfo {
+pub(crate) struct DragInfo {
     drag_start: Option<Vec2>,
-    pub(crate) follow: Option<FollowInfo>
+}
+
+impl Default for DragInfo {
+    fn default() -> Self {
+        Self { drag_start: None }
+    }
 }
 
 const DRAG_BUTTON: MouseButton = MouseButton::Right;
@@ -22,7 +21,7 @@ fn setup_camera(mut commands: Commands) {
     commands.spawn((Camera2d, Projection::Orthographic(OrthographicProjection { scale: 0.001, ..OrthographicProjection::default_2d() })));
 }
 
-fn drag_camera(mut camera: Query<(&Projection, &mut Transform), With<Camera2d>>, buttons: Res<ButtonInput<MouseButton>>, mut camera_info: ResMut<ViewInfo>, windows: Query<&Window>) {
+fn drag_camera(mut camera: Query<(&Projection, &mut Transform), With<Camera2d>>, buttons: Res<ButtonInput<MouseButton>>, mut camera_info: ResMut<DragInfo>, windows: Query<&Window>) {
     let window = windows.single().expect("Window not found");
     let (projection, mut camera_transform) = camera.single_mut().expect("Camera not found");
     let Some(cursor_position) = window.cursor_position() else {
@@ -75,26 +74,13 @@ fn zoom_camera(mut camera: Query<(&Camera, &mut Projection, &GlobalTransform, &m
     
 }
 
-fn test_follow_mercury(mut camera: Query<&mut Transform, With<Camera2d>>, planets: Query<(Entity, &Transform), Without<Camera2d>>, mut view_info: ResMut<ViewInfo>) {
-    let Some(following) = &mut view_info.into_inner().follow else {
-        return;
-    };
-    let mut camera_transform = camera.single_mut().expect("Camera not found");
-    for (entity, transform) in planets {
-        if entity != following.followed { continue };
-        let delta = transform.translation - following.previous_position;
-        camera_transform.translation += delta;
-        following.previous_position = transform.translation;
-    }
-}
-pub(super) struct CameraPlugin;
+pub(super) struct CameraMovementPlugin;
 
-impl Plugin for CameraPlugin {
+impl Plugin for CameraMovementPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, setup_camera);
         app.add_systems(Update, drag_camera);
         app.add_systems(Update, zoom_camera);
-        app.add_systems(Update, test_follow_mercury.after(tick_velocity));
-        app.insert_resource(ViewInfo { drag_start: None, follow: None });
+        app.insert_resource(DragInfo::default());
     }
 }
