@@ -1,9 +1,12 @@
 use bevy::app::{App, Plugin, Startup, Update};
+use bevy::input::keyboard::Key;
 use bevy::math::Vec3;
 use bevy::prelude::*;
 use crate::physics::rigid_body::tick_velocity;
 
 const SELECT_BUTTON: MouseButton = MouseButton::Left;
+const FOCUS_BUTTON: KeyCode = KeyCode::KeyZ;
+
 #[derive(Resource)]
 pub(crate) struct FollowInfo {
     pub(crate) entity: Option<Entity>,
@@ -58,11 +61,33 @@ fn select_followable(followables: Query<(Entity, &Transform, &Followable)>, mut 
     follow_info.previous_position = None;
     follow_info.name = None;
 }
+
+fn focus_selected(follow_info: Res<FollowInfo>, mut camera: Query<(&mut Transform, &mut Projection), With<Camera2d>>, button: Res<ButtonInput<KeyCode>>, followables: Query<(Entity, &Transform, &Followable), Without<Camera2d>>) {
+    if !button.just_pressed(FOCUS_BUTTON) {
+        return;
+    }
+    let (mut camera_transform, mut projection) = camera.single_mut().expect("Camera not found");
+    let Projection::Orthographic(projection) = projection.into_inner() else {
+        panic!("Camera is dyslexic (non-orthographic projection set)");
+    };
+    let Some(followed_entity) = follow_info.entity else {
+        camera_transform.translation = Vec3::splat(0.0);
+        projection.scale = 0.001;
+        return;
+    };
+    for (entity, transform, followable) in followables {
+        if entity != followed_entity { continue; }
+        camera_transform.translation = transform.translation;
+        projection.scale = followable.radius / 100.0;
+    }
+    
+}
 pub(super) struct CameraFollowPlugin;
 impl Plugin for CameraFollowPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(FollowInfo::default());
         app.add_systems(Update, follow_entity.after(tick_velocity));
         app.add_systems(Update, select_followable);
+        app.add_systems(Update, focus_selected);
     }
 }

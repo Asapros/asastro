@@ -9,13 +9,13 @@ use crate::view::follow::{FollowInfo, Followable};
 pub(super) fn spawn_solar_system(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<ColorMaterial>>) {
     for body in SOLAR_SYSTEM_TEMPLATE {
         // let mesh = Mesh2d(meshes.add(Circle::new(body.radius)));
-        let mesh = Mesh2d(meshes.add(Circle::new(0.05)));
+        let mesh = Mesh2d(meshes.add(Circle::new(body.radius)));
         let material = MeshMaterial2d(materials.add(body.color));
         let transform = Transform::from_xyz(body.aphelion_dist, 0.0, 0.0);
         let entity = commands.spawn((
             mesh, material, transform,
             RigidBody { velocity: Vec3::new(0.0, body.aphelion_speed, 0.0), mass: body.mass },
-            Followable { radius: 0.05, name: body.name.to_string() }
+            Followable { radius: body.radius, name: body.name.to_string() }
         ));
     }
     // Spawn moon
