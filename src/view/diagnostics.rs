@@ -65,16 +65,17 @@ fn update_text(mut text: Query<&mut Text, With<DiagnosticsText>>, diagnostics: R
         None => "SPS: -".to_string(),
         Some(fps) => format!("SPS: {}", time_to_string(fps as f32 * spf))
     };
-    // let sps_text_with_pause = match settings.pause {
-    //     
-    // }
+    let sps_text_with_pause = match settings.pause {
+        true => format!("{} [PAUSED]", sps_text),
+        false => sps_text
+    };
     
     let following_text = match &follow_info.name {
-        None => "Following: -".to_string(),
-        Some(name) => format!("Following: {}", name)
+        None => "Reference: -".to_string(),
+        Some(name) => format!("Reference: {}", name)
     };
 
-    text.0 = [sps_text, following_text].join("\n");
+    text.0 = [sps_text_with_pause, following_text].join("\n");
 }
 
 pub(super) struct DiagnosticsPlugin;
