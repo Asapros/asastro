@@ -3,43 +3,52 @@ use bevy::math::ops::powf;
 use bevy::prelude::*;
 use crate::physics::rigid_body::{tick_velocity, RigidBody};
 
-#[derive(Resource)]
-struct DragInfo {
-    cursor_start: Option<Vec2>,
-    camera_start: Option<Vec2>
+#[derive(Copy, Clone)]
+pub(crate) struct FollowInfo {
+    pub(crate) followed: Entity,
+    pub(crate) previous_position: Vec3
 }
 
-const DRAG_BUTTON: MouseButton = MouseButton::Left;
+#[derive(Resource)]
+pub(crate) struct ViewInfo {
+    drag_start: Option<Vec2>,
+    pub(crate) follow: Option<FollowInfo>
+}
+
+const DRAG_BUTTON: MouseButton = MouseButton::Right;
 const ZOOM_FACTOR: f32 = 1.2;
 
 fn setup_camera(mut commands: Commands) {
     commands.spawn((Camera2d, Projection::Orthographic(OrthographicProjection { scale: 0.001, ..OrthographicProjection::default_2d() })));
 }
 
-fn drag_camera(mut camera: Query<(&Camera, &GlobalTransform, &mut Transform), With<Camera2d>>, buttons: Res<ButtonInput<MouseButton>>, mut drag: ResMut<DragInfo>, windows: Query<&Window>) {
+fn drag_camera(mut camera: Query<(&Projection, &mut Transform), With<Camera2d>>, buttons: Res<ButtonInput<MouseButton>>, mut camera_info: ResMut<ViewInfo>, windows: Query<&Window>) {
     let window = windows.single().expect("Window not found");
-    let (camera, global_transform, mut camera_transform) = camera.single_mut().expect("Camera not found");
-    let camera_position = global_transform.translation().truncate();
-    let Some(cursor_position) = window.cursor_position().and_then(|cursor| camera.viewport_to_world_2d(global_transform, cursor).ok()) else {
+    let (projection, mut camera_transform) = camera.single_mut().expect("Camera not found");
+    let Some(cursor_position) = window.cursor_position() else {
         return;
     };
 
     if buttons.just_pressed(DRAG_BUTTON) {
-        drag.cursor_start = Some(cursor_position);
-        drag.camera_start = Some(camera_position);
+        camera_info.drag_start = Some(cursor_position);
     }
     if buttons.just_released(DRAG_BUTTON) {
-        drag.cursor_start = None;
-        drag.camera_start = None;
+        camera_info.drag_start = None;
+        return;
     }
     if !buttons.pressed(DRAG_BUTTON) {
         return;
     }
-    let cursor_displacement = drag.cursor_start.unwrap() - cursor_position;
-    let new_camera_position = camera_position + cursor_displacement;
-
-    camera_transform.translation.x = new_camera_position.x;
-    camera_transform.translation.y = new_camera_position.y;
+    
+    let cursor_displacement = camera_info.drag_start.unwrap() - cursor_position;
+    let Projection::Orthographic(projection) = projection else {
+        panic!("Camera is dyslexic (non-orthographic projection set)");
+    };
+    let camera_displacement = Vec2::new(cursor_displacement.x * projection.scale, cursor_displacement.y * -projection.scale);
+    
+    camera_transform.translation += camera_displacement.extend(0.0);
+    
+    camera_info.drag_start = Some(cursor_position);
 }
 
 fn zoom_camera(mut camera: Query<(&Camera, &mut Projection, &GlobalTransform, &mut Transform), With<Camera2d>>, mut scroll_events: EventReader<MouseWheel>, windows: Query<&Window>) {
@@ -66,13 +75,16 @@ fn zoom_camera(mut camera: Query<(&Camera, &mut Projection, &GlobalTransform, &m
     
 }
 
-fn test_follow_earth(mut camera: Query<&mut Transform, With<Camera2d>>, planets: Query<(&RigidBody, &Transform), Without<Camera2d>>) {
+fn test_follow_mercury(mut camera: Query<&mut Transform, With<Camera2d>>, planets: Query<(Entity, &Transform), Without<Camera2d>>, mut view_info: ResMut<ViewInfo>) {
+    let Some(following) = &mut view_info.into_inner().follow else {
+        return;
+    };
     let mut camera_transform = camera.single_mut().expect("Camera not found");
-    for (body, transform) in planets {
-        if body.mass == 0.00000300 {
-            camera_transform.translation = transform.translation;
-            return;
-        }
+    for (entity, transform) in planets {
+        if entity != following.followed { continue };
+        let delta = transform.translation - following.previous_position;
+        camera_transform.translation += delta;
+        following.previous_position = transform.translation;
     }
 }
 pub(super) struct CameraPlugin;
@@ -82,7 +94,7 @@ impl Plugin for CameraPlugin {
         app.add_systems(Startup, setup_camera);
         app.add_systems(Update, drag_camera);
         app.add_systems(Update, zoom_camera);
-        app.add_systems(Update, test_follow_earth.after(drag_camera).after(zoom_camera).after(tick_velocity));
-        app.insert_resource(DragInfo { cursor_start: None, camera_start: None });
+        app.add_systems(Update, test_follow_mercury.after(tick_velocity));
+        app.insert_resource(ViewInfo { drag_start: None, follow: None });
     }
 }
