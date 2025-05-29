@@ -51,7 +51,8 @@ fn select_followable(followables: Query<(Entity, &Transform, &Followable)>, mut 
     let Some(cursor_world) = camera.viewport_to_world_2d(camera_transform, cursor_screen).ok() else { return; };
 
     for (entity, transform, followable) in followables {
-        if transform.translation.truncate().distance(cursor_world) > followable.radius { continue }
+        // if transform.translation.truncate().distance(cursor_world) > followable.radius { continue }
+        if followable.name != "Earth" { continue; };
         follow_info.entity = Some(entity);
         follow_info.previous_position = Some(transform.translation);
         follow_info.name = Some(followable.name.clone());
