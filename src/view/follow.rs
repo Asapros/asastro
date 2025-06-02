@@ -17,7 +17,8 @@ pub(crate) struct FollowInfo {
 #[derive(Component)]
 pub(crate) struct Followable {
     pub(crate) radius: f32,
-    pub(crate) name: String
+    pub(crate) name: String,
+    pub(crate) bind: Option<u8>
 }
 
 impl Default for FollowInfo {
@@ -82,6 +83,32 @@ fn focus_selected(follow_info: Res<FollowInfo>, mut camera: Query<(&mut Transfor
     }
     
 }
+
+const FOLLOW_KEYS: [KeyCode; 10] = [
+    KeyCode::Digit1,
+    KeyCode::Digit2,
+    KeyCode::Digit3,
+    KeyCode::Digit4,
+    KeyCode::Digit5,
+    KeyCode::Digit6,
+    KeyCode::Digit7,
+    KeyCode::Digit8,
+    KeyCode::Digit9,
+    KeyCode::Digit0
+];
+
+fn follow_binds(followables: Query<(Entity, &Transform, &Followable)>, button: Res<ButtonInput<KeyCode>>, mut follow_info: ResMut<FollowInfo>) {
+    for (index, key) in FOLLOW_KEYS.iter().enumerate() {
+        if !button.just_pressed(key.clone()) { continue }
+        for (entity, transform, followable) in followables {
+            if followable.bind != Some(index as u8) { continue; }
+            follow_info.entity = Some(entity);
+            follow_info.previous_position = Some(transform.translation);
+            follow_info.name = Some(followable.name.clone());
+            break;
+        }
+    }
+}
 pub(super) struct CameraFollowPlugin;
 impl Plugin for CameraFollowPlugin {
     fn build(&self, app: &mut App) {
@@ -89,5 +116,6 @@ impl Plugin for CameraFollowPlugin {
         app.add_systems(Update, follow_entity.after(tick_velocity));
         app.add_systems(Update, select_followable);
         app.add_systems(Update, focus_selected);
+        app.add_systems(Update, follow_binds);
     }
 }
