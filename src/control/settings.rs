@@ -6,13 +6,14 @@ use crate::control::keys::*;
 pub(crate) struct SimulationSettings {
     pub dt: f32,
     pub stabilized_sps: f32,
-    pub pause: bool
+    pub pause: bool,
+    pub normalized: bool
 }
 
 const DEFAULT_SPS: f32 = 1.01 / 12.0; // A bit over a month
 impl Default for SimulationSettings {
     fn default() -> Self {
-        Self { dt: 0.0, pause: true, stabilized_sps: DEFAULT_SPS }
+        Self { dt: 0.0, pause: true, stabilized_sps: DEFAULT_SPS, normalized: false }
     }
 }
 
@@ -37,4 +38,11 @@ pub(super) fn stabilize_sps(mut settings: ResMut<SimulationSettings>, diagnostic
         return;
     };
     settings.dt = settings.stabilized_sps / fps as f32;
+}
+
+
+pub(super) fn normalize_planets(button: Res<ButtonInput<KeyCode>>, mut settings: ResMut<SimulationSettings>) {
+    if !button.just_pressed(BUTTON_NORMALIZE_SIZE) { return; }
+    
+    settings.normalized = !settings.normalized;
 }

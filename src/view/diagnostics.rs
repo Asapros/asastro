@@ -74,8 +74,13 @@ fn update_text(mut text: Query<&mut Text, With<DiagnosticsText>>, diagnostics: R
         None => "Reference: -".to_string(),
         Some(name) => format!("Reference: {}", name)
     };
+    
+    let normalized_text = match &settings.normalized {
+        true => "Scale: normalized",
+        false => "Scale: true"
+    }.to_string();
 
-    text.0 = [sps_text_with_pause, following_text].join("\n");
+    text.0 = [sps_text_with_pause, following_text, normalized_text].join("\n");
 }
 
 pub(super) struct DiagnosticsPlugin;
