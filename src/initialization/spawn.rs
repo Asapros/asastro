@@ -2,6 +2,7 @@ use bevy::asset::Assets;
 use bevy::color::Color;
 use bevy::math::Vec3;
 use bevy::prelude::*;
+use crate::control::settings::{Normalizable, NORMALIZED_SIZE};
 use crate::initialization::template::SOLAR_SYSTEM_TEMPLATE;
 use crate::physics::rigid_body::RigidBody;
 use crate::view::follow::{FollowInfo, Followable};
@@ -10,12 +11,14 @@ pub(super) fn spawn_solar_system(mut commands: Commands, mut meshes: ResMut<Asse
     for (index, body) in SOLAR_SYSTEM_TEMPLATE.iter().enumerate() {
         // let mesh = Mesh2d(meshes.add(Circle::new(body.radius)));
         let mesh = Mesh2d(meshes.add(Circle::new(body.radius)));
+        let normalized_mesh = Mesh2d(meshes.add(Circle::new(NORMALIZED_SIZE)));
         let material = MeshMaterial2d(materials.add(body.color));
         let transform = Transform::from_xyz(body.aphelion_dist, 0.0, 0.0);
         let entity = commands.spawn((
-            mesh, material, transform,
+            mesh.clone(), material, transform,
             RigidBody { velocity: Vec3::new(0.0, body.aphelion_speed, 0.0), mass: body.mass },
-            Followable { radius: body.radius, name: body.name.to_string(), bind: index.try_into().ok() }
+            Followable { radius: body.radius, name: body.name.to_string(), bind: index.try_into().ok() },
+            Normalizable { normalized_mesh: normalized_mesh, original_mesh: mesh.clone(), original_size: body.radius }
         ));
     }
     // Spawn moon

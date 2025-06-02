@@ -1,6 +1,10 @@
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
+use bevy::ecs::bundle::DynamicBundle;
+use bevy::ecs::component::ComponentId;
 use bevy::prelude::*;
+use bevy::text::cosmic_text::ttf_parser::gdef::GlyphClass::Component;
 use crate::control::keys::*;
+use crate::view::follow::Followable;
 
 #[derive(Resource)]
 pub(crate) struct SimulationSettings {
@@ -40,9 +44,29 @@ pub(super) fn stabilize_sps(mut settings: ResMut<SimulationSettings>, diagnostic
     settings.dt = settings.stabilized_sps / fps as f32;
 }
 
+#[derive(Component)]
+pub(crate) struct Normalizable {
+    pub(crate) original_mesh: Mesh2d,
+    pub(crate) normalized_mesh: Mesh2d,
+    pub(crate) original_size: f32
+}
 
-pub(super) fn normalize_planets(button: Res<ButtonInput<KeyCode>>, mut settings: ResMut<SimulationSettings>) {
+pub(crate) const NORMALIZED_SIZE: f32 = 0.05;
+
+pub(super) fn normalize_planets(button: Res<ButtonInput<KeyCode>>, mut settings: ResMut<SimulationSettings>, normalizables: Query<(&Normalizable, Entity, &mut Followable)>, mut commands: Commands) {
     if !button.just_pressed(BUTTON_NORMALIZE_SIZE) { return; }
-    
+
     settings.normalized = !settings.normalized;
+
+    for (normalizable, entity, mut followable) in normalizables {
+        commands.entity(entity).remove::<Mesh2d>();
+        commands.entity(entity).insert(match settings.normalized {
+            true => normalizable.normalized_mesh.clone(),
+            false => normalizable.original_mesh.clone()
+        });
+        followable.radius = match settings.normalized {
+            true => NORMALIZED_SIZE,
+            false => normalizable.original_size
+        };
+    }
 }
