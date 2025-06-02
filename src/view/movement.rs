@@ -21,7 +21,7 @@ fn setup_camera(mut commands: Commands) {
     commands.spawn((Camera2d, Projection::Orthographic(OrthographicProjection { scale: 0.001, ..OrthographicProjection::default_2d() })));
 }
 
-fn drag_camera(mut camera: Query<(&Projection, &mut Transform), With<Camera2d>>, buttons: Res<ButtonInput<MouseButton>>, mut camera_info: ResMut<DragInfo>, windows: Query<&Window>) {
+pub(super) fn drag_camera(mut camera: Query<(&Projection, &mut Transform), With<Camera2d>>, buttons: Res<ButtonInput<MouseButton>>, mut camera_info: ResMut<DragInfo>, windows: Query<&Window>) {
     let window = windows.single().expect("Window not found");
     let (projection, mut camera_transform) = camera.single_mut().expect("Camera not found");
     let Some(cursor_position) = window.cursor_position() else {
@@ -50,7 +50,7 @@ fn drag_camera(mut camera: Query<(&Projection, &mut Transform), With<Camera2d>>,
     camera_info.drag_start = Some(cursor_position);
 }
 
-fn zoom_camera(mut camera: Query<(&Camera, &mut Projection, &GlobalTransform, &mut Transform), With<Camera2d>>, mut scroll_events: EventReader<MouseWheel>, windows: Query<&Window>) {
+pub(super) fn zoom_camera(mut camera: Query<(&Camera, &mut Projection, &GlobalTransform, &mut Transform), With<Camera2d>>, mut scroll_events: EventReader<MouseWheel>, windows: Query<&Window>) {
     let steps: f32 = scroll_events.read().map(|event| event.y).sum();
     if steps == 0.0 {
         return;

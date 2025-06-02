@@ -3,6 +3,7 @@ use bevy::input::keyboard::Key;
 use bevy::math::Vec3;
 use bevy::prelude::*;
 use crate::physics::rigid_body::tick_velocity;
+use crate::view::movement::{drag_camera, zoom_camera};
 
 const SELECT_BUTTON: MouseButton = MouseButton::Left;
 const FOCUS_BUTTON: KeyCode = KeyCode::KeyZ;
@@ -113,7 +114,7 @@ pub(super) struct CameraFollowPlugin;
 impl Plugin for CameraFollowPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(FollowInfo::default());
-        app.add_systems(Update, follow_entity.after(tick_velocity));
+        app.add_systems(Update, follow_entity.after(tick_velocity).after(zoom_camera).after(drag_camera));
         app.add_systems(Update, select_followable);
         app.add_systems(Update, focus_selected);
         app.add_systems(Update, follow_binds);
